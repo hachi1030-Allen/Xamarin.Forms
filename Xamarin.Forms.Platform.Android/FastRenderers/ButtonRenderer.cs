@@ -2,8 +2,13 @@ using System;
 using System.ComponentModel;
 using Android.Content;
 using Android.Graphics;
+#if __ANDROID_29__
+using AndroidX.Core.View;
+using AndroidX.AppCompat.Widget;
+#else
 using Android.Support.V4.View;
 using Android.Support.V7.Widget;
+#endif
 using Android.Util;
 using Android.Views;
 using Xamarin.Forms.Internals;
@@ -85,7 +90,25 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 
 		SizeRequest IVisualElementRenderer.GetDesiredSize(int widthConstraint, int heightConstraint)
 		{
-			return _buttonLayoutManager.GetDesiredSize(widthConstraint, heightConstraint);
+			if (_isDisposed)
+			{
+				return new SizeRequest();
+			}
+
+			var hint = Control.Hint;
+			bool setHint = Control.LayoutParameters != null;
+
+			if (!string.IsNullOrWhiteSpace(hint) && setHint)
+			{
+				Control.Hint = string.Empty;
+			}
+
+			var result  = _buttonLayoutManager.GetDesiredSize(widthConstraint, heightConstraint);
+
+			if(setHint)
+				Control.Hint = hint;
+
+			return result;
 		}
 
 		void IVisualElementRenderer.SetElement(VisualElement element)
@@ -128,7 +151,6 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 		{
 			ViewRenderer.MeasureExactly(this, Element, Context);
 		}
-
 
 		public override void Draw(Canvas canvas)
 		{
@@ -188,7 +210,7 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 		protected virtual void OnElementChanged(ElementChangedEventArgs<Button> e)
 		{
 			ElementChanged?.Invoke(this, new VisualElementChangedEventArgs(e.OldElement, e.NewElement));
-		
+
 			if (e.OldElement != null)
 			{
 				e.OldElement.PropertyChanged -= OnElementPropertyChanged;
@@ -222,6 +244,17 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 
 		protected virtual void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
+			if (this.IsDisposed())
+			{
+				return;
+			}	
+
+			if(Control?.LayoutParameters == null)
+			{
+				ElementPropertyChanged?.Invoke(this, e);
+				return;
+			}
+
 			if (e.PropertyName == Button.TextColorProperty.PropertyName)
 			{
 				UpdateTextColor();

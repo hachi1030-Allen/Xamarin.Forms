@@ -43,6 +43,12 @@ namespace Xamarin.Forms.Platform.MacOS
 			Label.TextTypeProperty.PropertyName
 		};
 
+		[Internals.Preserve(Conditional = true)]
+		public LabelRenderer()
+		{
+
+		}
+
 		public override SizeRequest GetDesiredSize(double widthConstraint, double heightConstraint)
 		{
 			if (!_perfectSizeValid)
@@ -244,9 +250,6 @@ namespace Xamarin.Forms.Platform.MacOS
 			if (Element?.TextType != TextType.Text)
 				return;
 
-			if (!Element.IsSet(Label.TextDecorationsProperty))
-				return;
-
 #if __MOBILE__
 			if (!(Control.AttributedText?.Length > 0))
 				return;
@@ -278,7 +281,9 @@ namespace Xamarin.Forms.Platform.MacOS
 			else
 				newAttributedText.AddAttribute(underlineStyleKey, NSNumber.FromInt32((int)NSUnderlineStyle.Single), range);
 
-#if !__MOBILE__
+#if __MOBILE__
+			Control.AttributedText = newAttributedText;
+#else
 			Control.AttributedStringValue = newAttributedText;
 #endif
 			UpdateCharacterSpacing();
@@ -514,7 +519,7 @@ namespace Xamarin.Forms.Platform.MacOS
 			Control.TextColor = textColor.ToUIColor(ColorExtensions.Black);
 #else
 			var alignment = Element.HorizontalTextAlignment.ToNativeTextAlignment(((IVisualElementController)Element).EffectiveFlowDirection);
-			var textWithColor = new NSAttributedString(Element.Text ?? "", font: Element.ToNSFont(), foregroundColor: textColor.ToNSColor(), paragraphStyle: new NSMutableParagraphStyle() { Alignment = alignment });
+			var textWithColor = new NSAttributedString(Element.Text ?? "", font: Element.ToNSFont(), foregroundColor: textColor.ToNSColor(ColorExtensions.Black), paragraphStyle: new NSMutableParagraphStyle() { Alignment = alignment });
 			textWithColor = textWithColor.AddCharacterSpacing(Element.Text ?? string.Empty, Element.CharacterSpacing);
 			Control.AttributedStringValue = textWithColor;
 #endif

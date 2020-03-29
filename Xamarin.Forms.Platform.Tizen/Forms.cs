@@ -11,6 +11,7 @@ using Tizen.Applications;
 using TSystemInfo = Tizen.System.Information;
 using ELayout = ElmSharp.Layout;
 using DeviceOrientation = Xamarin.Forms.Internals.DeviceOrientation;
+using ElmSharp.Wearable;
 
 namespace Xamarin.Forms
 {
@@ -185,6 +186,11 @@ namespace Xamarin.Forms
 
 		public static ELayout BaseLayout => NativeParent as ELayout;
 
+		public static CircleSurface CircleSurface
+		{
+			get; internal set;
+		}
+
 		public static bool IsInitialized
 		{
 			get;
@@ -346,6 +352,7 @@ namespace Xamarin.Forms
 
 				Elementary.Initialize();
 				Elementary.ThemeOverlay();
+				Utility.AppendGlobalFontPath(@"/usr/share/fonts");
 			}
 
 			Device.PlatformServices = new TizenPlatformServices();
@@ -394,7 +401,8 @@ namespace Xamarin.Forms
 										typeof(ExportRendererAttribute),
 										typeof(ExportImageSourceHandlerAttribute),
 										typeof(ExportCellAttribute),
-										typeof(ExportHandlerAttribute)
+										typeof(ExportHandlerAttribute),
+										typeof(ExportFontAttribute)
 									});
 								}
 						}
@@ -405,7 +413,8 @@ namespace Xamarin.Forms
 								typeof(ExportRendererAttribute),
 								typeof(ExportImageSourceHandlerAttribute),
 								typeof(ExportCellAttribute),
-								typeof(ExportHandlerAttribute)
+								typeof(ExportHandlerAttribute),
+								typeof(ExportFontAttribute)
 							});
 						}
 					}
@@ -439,7 +448,8 @@ namespace Xamarin.Forms
 						typeof(ExportRendererAttribute),
 						typeof(ExportImageSourceHandlerAttribute),
 						typeof(ExportCellAttribute),
-						typeof(ExportHandlerAttribute)
+						typeof(ExportHandlerAttribute),
+						typeof(ExportFontAttribute)
 					});
 				}
 			}
@@ -467,6 +477,10 @@ namespace Xamarin.Forms
 			}
 			Color.SetAccent(GetAccentColor(profile));
 			ExpressionSearch.Default = new TizenExpressionSearch();
+
+			if (application is WatchApplication)
+				s_platformType = PlatformType.Lightweight;
+
 			IsInitialized = true;
 		}
 
